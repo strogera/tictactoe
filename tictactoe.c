@@ -3,21 +3,33 @@
 #include <time.h>
 
 #define BUFFER 1000
+#define AISYMBOL '1'
+#define PLAYERSYMBOL '0'
 
 void printBoard();
 int checkWinCondition();
 char board[3][3];
-char *openSquares[9];
 
-void getOpenSquares();
-void initOpenSquares(){
-	//not important delete later
-	int i;
-	for(i=0;i<9;i++){
-		openSquares[i]=NULL;
+struct move{
+	int x;
+	int y;
+};
+
+struct move*  minimaxDecision();
+struct move* maxValue(int *);
+struct move* minValue(int *);
+int checkDraw(){
+	int i,j;
+	for(i=0;i<3;i++){
+		for(j=0;j<3;j++){
+			if(board[i][j]==' '){
+				return 0;
+			}
+		}
 	}
+	return 1;
 }
-int getCountOfAvailableMoves();
+
 int main(){
 	char aisymbol, playersymbol;
 	do{
@@ -32,9 +44,9 @@ int main(){
 	time_t curTime;
 	ctime(&curTime);
 	srand(curTime);
-	int goesFirst;
+	int playerGoesFirst;
 	//0 for pc 1 for player
-	goesFirst=rand()%2;
+	playerGoesFirst=rand()%2;
 	int i,j;
 	for(i=0; i<3; i++){
 		for(j=0; j<3;j++){
@@ -45,20 +57,16 @@ int main(){
 	int x,y,countAvailableMoves, move;
 	char readBuffer[BUFFER];
 	int printOnceFlag=0;
+	struct move * currMove=malloc(sizeof(struct move));
 	do{
 
-		if(goesFirst==0){
-			getOpenSquares();
-			countAvailableMoves=getCountOfAvailableMoves();
-			move=rand()%countAvailableMoves;
-			*openSquares[move]=aisymbol;
+		if(playerGoesFirst==0){
+			currMove=minimaxDecision();	
+			board[currMove->x][currMove->y]=AISYMBOL;
 			printBoard();
-			goesFirst=1;
-		}else{
-			if(printOnceFlag==0){
+			playerGoesFirst=2;
+		}else if(playerGoesFirst==1){
 				printBoard();
-				printOnceFlag=1;
-			}
 		}
 		do{
 			printf("Your move (x y): ");
@@ -70,28 +78,32 @@ int main(){
 				printf("Illegal move, already exists\n");
 			}
 		}while(x<0||x>2||y<0||y>2||board[x][y]!=' ');
-		board[x][y]=playersymbol;
+		board[x][y]=PLAYERSYMBOL;
 		printBoard();
 		if(checkWinCondition()){
 			printf("Congratz, you won!\n");
 			return 0;
 		}
-		getOpenSquares();
-		countAvailableMoves=getCountOfAvailableMoves();
-		if(countAvailableMoves==0){
-			break;
-		}
-		move=rand()%countAvailableMoves;
-		printf("%d\n", move);
-		*openSquares[move]=aisymbol;
-		printBoard();
-		if(checkWinCondition()){
-			printf("You suck, you lost to random moves!\n");
+		if(checkDraw()){
+			printf("Congratz, you managed to draw! That's the best you can get.\n");
 			return 0;
 		}
-		getOpenSquares();
-	}while(getCountOfAvailableMoves()!=0);
-	printf("Its a draw!\n");
+			currMove=minimaxDecision();	
+			if(currMove==NULL){
+				printf("draw?\n");
+				return 0;//TODO
+			}
+			board[currMove->x][currMove->y]=AISYMBOL;
+			printBoard();
+			if(checkWinCondition()){
+				printf("You lost but dw you can't win the ai!\n");
+				return 0;
+			}
+			if(checkDraw()){
+				printf("Congratz, you managed to draw! That's the best you can get.\n");
+				return 0;
+			}
+	}while(1);
 
 }
 
@@ -121,32 +133,7 @@ void printBoard(){
 
 }
 
-void getOpenSquares(){
-	int i, j, count=0;
-	for(i=0; i<3; i++){
-		for(j=0; j<3;j++){
-			if(board[i][j]==' '){
-				openSquares[count]=&board[i][j];
-				count++;
-			}
-		}
-	}
-	for(;count<9;count++){
-		openSquares[count]=NULL;
-	}
-}
 
-int getCountOfAvailableMoves(){
-	int i,count=0;
-	for(i=0;i<9;i++){
-		if (openSquares[i]!=NULL){
-			count++;
-		}else{
-			break;
-		}
-	}
-	return count;
-}
 int checkWinCondition(){
 	int i,j,flag=1;
 	char symbol;
@@ -198,4 +185,74 @@ int checkWinCondition(){
 	}
 	return 0;
 
+}
+
+struct move * minimaxDecision(){
+	int u=-2;//value for best move, 1=win, 0=draw, -1=lose
+	return maxValue(&u);
+}
+
+struct move * maxValue(int * value){
+	if(checkWinCondition()){
+		*value=1;	
+		return NULL;
+	}
+	int i, j, availableMoves=0;
+	if(checkDraw()){
+		*value=0;
+		return NULL;
+	}
+	int u=-2, tempU;
+	struct move *currMove, *bestMove=malloc(sizeof(struct move));;
+	for(i=0;i<3;i++){
+		for(j=0;j<3;j++){
+			if(board[i][j]==' '){
+				board[i][j]=AISYMBOL;
+				currMove=minValue(&tempU);
+				if(currMove!=NULL)
+					free(currMove);
+				if(tempU>u){
+					u=tempU;
+					*value=u;
+					bestMove->x=i;
+					bestMove->y=j;
+				}
+				board[i][j]=' ';
+			}
+		}
+
+	}
+	return bestMove;
+}
+struct move * minValue(int * value){
+	if(checkWinCondition()){
+		*value=-1;	
+		return NULL;
+	}
+	int i, j, availableMoves=0;
+	if(checkDraw()==0){
+		*value=0;
+		return NULL;
+	}
+	int u=2, tempU;
+	struct move *currMove, *bestMove=malloc(sizeof(struct move));;
+	for(i=0;i<3;i++){
+		for(j=0;j<3;j++){
+			if(board[i][j]==' '){
+				board[i][j]=PLAYERSYMBOL;
+				currMove=maxValue(&tempU);
+				if(currMove!=NULL)
+					free(currMove);
+				if(tempU<u){
+					u=tempU;
+					*value=u;
+					bestMove->x=i;
+					bestMove->y=j;
+				}
+				board[i][j]=' ';
+			}
+		}
+
+	}
+	return bestMove;
 }
