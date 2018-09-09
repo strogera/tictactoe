@@ -1,2 +1,3 @@
 # tictactoe
-tic tac toe with minimax algorithm in c
+Tic tac toe game.
+Play against ai (minimax algorithm) in c.
