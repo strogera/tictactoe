@@ -255,4 +255,5 @@ struct move * minValue(int * value){
 
 	}
 	return bestMove;
+
 }
