@@ -1,2 +1,2 @@
 # tictactoe
-tic tac toe with minimax algorithm(wip, currently doesnt play optimaly)
+tic tac toe with minimax algorithm in c
