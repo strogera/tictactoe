@@ -3,8 +3,6 @@
 #include <time.h>
 
 #define BUFFER 1000
-#define AISYMBOL '1'
-#define PLAYERSYMBOL '0'
 
 void printBoard();
 int checkWinCondition();
@@ -13,11 +11,12 @@ char board[3][3];
 struct move{
 	int x;
 	int y;
+	int value;
 };
 
 struct move*  minimaxDecision();
-struct move* maxValue(int *);
-struct move* minValue(int *);
+struct move* maxValue();
+struct move* minValue();
 int checkDraw(){
 	int i,j;
 	for(i=0;i<3;i++){
@@ -30,22 +29,24 @@ int checkDraw(){
 	return 1;
 }
 
+char aisymbol, playersymbol;
 int main(){
-	char aisymbol, playersymbol;
 	do{
 		printf("Choose your prefered symbol(0 for O, 1 for X): ");
 		playersymbol=getchar();
 	}while(playersymbol!='1'&&playersymbol!='0');
 	if(playersymbol=='1'){
-		aisymbol='0';
+		aisymbol='O';
+		playersymbol='X';
 	}else{
-		aisymbol='1';
+		aisymbol='X';
+		playersymbol='O';
 	}
 	time_t curTime;
 	ctime(&curTime);
 	srand(curTime);
 	int playerGoesFirst;
-	//0 for pc 1 for player
+	//0 for ai 1 for player
 	playerGoesFirst=rand()%2;
 	int i,j;
 	for(i=0; i<3; i++){
@@ -62,11 +63,12 @@ int main(){
 
 		if(playerGoesFirst==0){
 			currMove=minimaxDecision();	
-			board[currMove->x][currMove->y]=AISYMBOL;
+			board[currMove->x][currMove->y]=aisymbol;
 			printBoard();
 			playerGoesFirst=2;
 		}else if(playerGoesFirst==1){
 				printBoard();
+				playerGoesFirst=2;
 		}
 		do{
 			printf("Your move (x y): ");
@@ -78,7 +80,7 @@ int main(){
 				printf("Illegal move, already exists\n");
 			}
 		}while(x<0||x>2||y<0||y>2||board[x][y]!=' ');
-		board[x][y]=PLAYERSYMBOL;
+		board[x][y]=playersymbol;
 		printBoard();
 		if(checkWinCondition()){
 			printf("Congratz, you won!\n");
@@ -93,7 +95,7 @@ int main(){
 				printf("draw?\n");
 				return 0;//TODO
 			}
-			board[currMove->x][currMove->y]=AISYMBOL;
+			board[currMove->x][currMove->y]=aisymbol;
 			printBoard();
 			if(checkWinCondition()){
 				printf("You lost but dw you can't win the ai!\n");
@@ -155,7 +157,7 @@ int checkWinCondition(){
 	}
 	for(j=0; j<3; j++){
 		flag=1;
-		symbol=board[j][0];
+		symbol=board[0][j];
 		if(symbol==' '){
 			continue;
 		}
@@ -188,35 +190,33 @@ int checkWinCondition(){
 }
 
 struct move * minimaxDecision(){
-	int u=-2;//value for best move, 1=win, 0=draw, -1=lose
-	return maxValue(&u);
+	return maxValue();
 }
 
-struct move * maxValue(int * value){
+struct move * maxValue(){
+	struct move *currMove, *bestMove=malloc(sizeof(struct move));;
 	if(checkWinCondition()){
-		*value=1;	
-		return NULL;
+		bestMove->value=-1;	
+		return bestMove;
 	}
 	int i, j, availableMoves=0;
 	if(checkDraw()){
-		*value=0;
-		return NULL;
+		bestMove->value=0;
+		return bestMove;
 	}
 	int u=-2, tempU;
-	struct move *currMove, *bestMove=malloc(sizeof(struct move));;
 	for(i=0;i<3;i++){
 		for(j=0;j<3;j++){
 			if(board[i][j]==' '){
-				board[i][j]=AISYMBOL;
-				currMove=minValue(&tempU);
-				if(currMove!=NULL)
-					free(currMove);
-				if(tempU>u){
-					u=tempU;
-					*value=u;
+				board[i][j]=aisymbol;
+				currMove=minValue();
+				if(currMove->value>u){
+					u=currMove->value;
+					bestMove->value=u;
 					bestMove->x=i;
 					bestMove->y=j;
 				}
+				free(currMove);
 				board[i][j]=' ';
 			}
 		}
@@ -224,31 +224,30 @@ struct move * maxValue(int * value){
 	}
 	return bestMove;
 }
-struct move * minValue(int * value){
+struct move * minValue(){
+	struct move *currMove, *bestMove=malloc(sizeof(struct move));
 	if(checkWinCondition()){
-		*value=-1;	
-		return NULL;
+		bestMove->value=1;	
+		return bestMove;
 	}
 	int i, j, availableMoves=0;
-	if(checkDraw()==0){
-		*value=0;
-		return NULL;
+	if(checkDraw()){
+		bestMove->value=0;
+		return bestMove;
 	}
 	int u=2, tempU;
-	struct move *currMove, *bestMove=malloc(sizeof(struct move));;
 	for(i=0;i<3;i++){
 		for(j=0;j<3;j++){
 			if(board[i][j]==' '){
-				board[i][j]=PLAYERSYMBOL;
-				currMove=maxValue(&tempU);
-				if(currMove!=NULL)
-					free(currMove);
-				if(tempU<u){
-					u=tempU;
-					*value=u;
+				board[i][j]=playersymbol;
+				currMove=maxValue();
+				if(currMove->value<u){
+					u=currMove->value;
+					bestMove->value=u;
 					bestMove->x=i;
 					bestMove->y=j;
 				}
+				free(currMove);
 				board[i][j]=' ';
 			}
 		}
