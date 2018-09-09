@@ -65,27 +65,33 @@ int main(){
 			scanf("%*[^\n]%*c\n");
 			scanf("%d %d", &x,&y);
 			if(x<0||x>2||y<0||y>2){
-				printf("Illegal move\n");
+				printf("Illegal move, out of bounds\n");
+			}else if(board[x][y]!=' '){
+				printf("Illegal move, already exists\n");
 			}
-		}while(x<0||x>2||y<0||y>2);
+		}while(x<0||x>2||y<0||y>2||board[x][y]!=' ');
 		board[x][y]=playersymbol;
 		printBoard();
 		if(checkWinCondition()){
 			printf("Congratz, you won!\n");
-			break;
+			return 0;
 		}
 		getOpenSquares();
 		countAvailableMoves=getCountOfAvailableMoves();
+		if(countAvailableMoves==0){
+			break;
+		}
 		move=rand()%countAvailableMoves;
 		printf("%d\n", move);
 		*openSquares[move]=aisymbol;
 		printBoard();
 		if(checkWinCondition()){
 			printf("You suck, you lost to random moves!\n");
-			break;
+			return 0;
 		}
 		getOpenSquares();
-	}while(getCountOfAvailableMoves!=0);
+	}while(getCountOfAvailableMoves()!=0);
+	printf("Its a draw!\n");
 
 }
 
