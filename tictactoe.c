@@ -50,7 +50,7 @@ int main(){
 	}
 
 	char c;
-	int x,y, move, printOnceFlag=0;
+	int x,y, printOnceFlag=0;
 	struct move * currMove=malloc(sizeof(struct move));
 
 	//actual game
@@ -237,7 +237,7 @@ struct move * maxValue(){
 		return bestMove;
 	}
 
-	int i, j, availableMoves=0, u=-2;
+	int i, j, u=-2;
 	//get max value of min values of the succesors
 	for(i=0;i<3;i++){
 		for(j=0;j<3;j++){
@@ -272,7 +272,7 @@ struct move * minValue(){
 	}
 
 	//get max value of min values of the succesors
-	int i, j, availableMoves=0, u=-2;
+	int i, j, u=2;
 	for(i=0;i<3;i++){
 		for(j=0;j<3;j++){
 			if(board[i][j]==' '){ //see maxValue() for explanation
