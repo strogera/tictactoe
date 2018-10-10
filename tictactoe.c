@@ -64,10 +64,10 @@ int main(){
 		}else if(playerGoesFirst==1){
 				//print the empty board and then continue
 				printBoard();
-				playerGoesFirst=2; //set to 2 so it gets called once only when player goes first
+				playerGoesFirst=2; //set to 2 so this segment gets called once only when player goes first
 		}
 		do{
-			//get move until legal move
+			//get move from the player until it's legal
 			printf("Your move (x y): ");
 			while((c=getchar())!='\n' && c!=EOF); //clear the input buffer
 			scanf("%d %d", &x,&y);
@@ -137,8 +137,8 @@ void printBoard(){
 
 
 int checkWinCondition(){
-	//checks if there the current board contains a winning condition for either player
-	//returns 1 someone wins, 0 if not
+	//checks if the current board contains a winning condition for either player
+	//returns 1 if someone wins, 0 if not
 	int i,j,flag=1;
 	char symbol;
 
@@ -179,7 +179,7 @@ int checkWinCondition(){
 	}
 
 	//checks diagonals
-	symbol=board[1][1]; //if a winning condition exist in the diagonal, the 1,1 cell needs to be occupied with the winning symbol
+	symbol=board[1][1]; //if a winning condition exists in the diagonal then the 1,1 cell needs to be occupied with the winning symbol
 	if(symbol!=' '){
 		//check the four corners antidametric
 		if(board[0][0]==symbol){
@@ -200,7 +200,7 @@ int checkWinCondition(){
 
 int checkDraw(){
 	//checks if the current board is a draw
-	//in order to draw all cells needs to be occupied
+	//in order to have a draw all cells needs to be occupied
 	//returns 1 if draw, 0 if not
 	int i,j;
 	for(i=0;i<3;i++){
@@ -217,7 +217,7 @@ struct move * minimaxDecision(){
 	//recursive minimax algorithm
 	//minimax has two problems
 	//a)it assumes that the player plays optimaly
-	//b)is quite time consuminig
+	//b)it is quite time consuminig
 	//in this case, a) it will not lose either way and b) its not so bad for this one
 	/////
 	//values are 1 for ai wins, 0 for draw, -1 for player wins
@@ -241,7 +241,7 @@ struct move * maxValue(){
 	//get max value of min values of the succesors
 	for(i=0;i<3;i++){
 		for(j=0;j<3;j++){
-			if(board[i][j]==' '){ //get all moves for the current state of board
+			if(board[i][j]==' '){ //get all the available moves for the current state of the board
 				board[i][j]=aisymbol; //make the move
 				currMove=minValue();
 				if(currMove->value>u){ //get max value of the minValues of the succesors
@@ -252,7 +252,7 @@ struct move * maxValue(){
 				}
 				free(currMove); //each time min/maxValue() is called a malloc of size struct move happens
 						//so after each call after we update our current ones we can free it
-				board[i][j]=' '; //undo move in order to check the rest of available moves
+				board[i][j]=' '; //undo move in order to check the rest of the available moves with the state the algorith was called with 
 			}
 		}
 
@@ -278,7 +278,7 @@ struct move * minValue(){
 			if(board[i][j]==' '){ //see maxValue() for explanation
 				board[i][j]=playersymbol;
 				currMove=maxValue(); //now we need the maxValue of the succesors
-				if(currMove->value<u){ //and the move with the minimum value 
+				if(currMove->value<u){ //and the move with the minimum value of them
 					u=currMove->value; //u holds the current minimum value
 					bestMove->value=u;
 					bestMove->x=i;
